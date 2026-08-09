@@ -81,7 +81,7 @@
   <div class="panel">
     <h2>Coins Flagged for Closer Attention</h2>
     <p class="small">These matched a known key date/variety or error in the reference list, or were manually flagged. Review before deciding to keep, sell, or spend.</p>
-    <table id="flaggedTable"><thead><tr><th>Coin</th><th>Est. Value</th><th>Status</th><th>Notes</th></tr></thead><tbody></tbody></table>
+    <table id="flaggedTable"><thead><tr><th>Item</th><th>Est. Value</th><th>Status</th><th>Notes</th></tr></thead><tbody></tbody></table>
   </div>
   <div class="panel">
     <h2>Suggested Next Actions</h2>
@@ -92,25 +92,89 @@
 <!-- ADD COIN -->
 <div class="tab" id="tab-add">
   <div class="panel">
-    <h2>Log a Coin</h2>
+    <h2>Log an Item</h2>
     <div id="editingBanner" class="flagbox" style="display:none;margin-bottom:14px;"></div>
-    <div class="row">
-      <div>
-        <label>Series / Type</label>
-        <select id="f_series"></select>
+
+    <label>Item Type</label>
+    <div class="row" style="font-family:Arial,sans-serif;">
+      <div><label style="display:inline-flex;align-items:center;gap:6px;font-weight:normal;"><input type="radio" name="f_itemType" id="f_itemTypeCoin" value="Coin" checked style="width:auto;"> Coin</label></div>
+      <div><label style="display:inline-flex;align-items:center;gap:6px;font-weight:normal;"><input type="radio" name="f_itemType" id="f_itemTypeCurrency" value="Currency" style="width:auto;"> Paper Currency (bills)</label></div>
+    </div>
+
+    <div id="coinFields">
+      <div class="row">
+        <div>
+          <label>Series / Type</label>
+          <select id="f_series"></select>
+        </div>
+        <div>
+          <label>Denomination</label>
+          <select id="f_denom">
+            <option>Cent</option><option>Nickel</option><option>Dime</option><option>Quarter</option><option>Half Dollar</option><option>Dollar</option>
+          </select>
+        </div>
       </div>
-      <div>
-        <label>Denomination</label>
-        <select id="f_denom">
-          <option>Cent</option><option>Nickel</option><option>Dime</option><option>Quarter</option><option>Half Dollar</option><option>Dollar</option>
-        </select>
+      <div class="row">
+        <div><label>Mint Mark</label><input id="f_mm" placeholder="e.g. S, D, CC, O, or blank for Philadelphia"></div>
+      </div>
+      <label>Physical error indicators (check anything you can see — these aren't tied to a date, so the built-in reference list can't catch them by year alone)</label>
+      <div class="row" style="font-family:Arial,sans-serif;font-size:.9em;">
+        <div><label style="display:inline-flex;align-items:center;gap:6px;margin-top:2px;"><input type="checkbox" class="f_err_coin" value="Visible doubling" style="width:auto;"> Visible doubling (letters/numbers)</label>
+        <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err_coin" value="Off-center strike" style="width:auto;"> Off-center strike</label>
+        <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err_coin" value="Clipped/odd-shaped planchet" style="width:auto;"> Clipped / odd-shaped planchet</label></div>
+        <div><label style="display:inline-flex;align-items:center;gap:6px;margin-top:2px;"><input type="checkbox" class="f_err_coin" value="Wrong color/weight for date" style="width:auto;"> Wrong color or weight for the date</label>
+        <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err_coin" value="Die crack / raised line" style="width:auto;"> Die crack / raised line</label>
+        <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err_coin" value="Other unusual feature" style="width:auto;"> Other unusual feature (describe in notes)</label></div>
       </div>
     </div>
+
+    <div id="currencyFields" style="display:none;">
+      <div class="row">
+        <div>
+          <label>Denomination</label>
+          <select id="f_currDenom">
+            <option>$1</option><option>$2</option><option>$5</option><option>$10</option><option>$20</option><option>$50</option><option>$100</option>
+            <option>$500</option><option>$1000</option><option>$5000</option><option>$10000</option>
+            <option>Fractional (under $1)</option>
+          </select>
+        </div>
+        <div>
+          <label>Note Type / Seal Color</label>
+          <select id="f_noteType"></select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Serial Number</label><input id="f_serial" placeholder="e.g. B12345678A (check for fancy/low numbers)"></div>
+        <div>
+          <label>Federal Reserve District (if applicable)</label>
+          <select id="f_district">
+            <option value="">— not applicable —</option>
+            <option>A — Boston</option><option>B — New York</option><option>C — Philadelphia</option>
+            <option>D — Cleveland</option><option>E — Richmond</option><option>F — Atlanta</option>
+            <option>G — Chicago</option><option>H — St. Louis</option><option>I — Minneapolis</option>
+            <option>J — Kansas City</option><option>K — Dallas</option><option>L — San Francisco</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="font-family:Arial,sans-serif;font-size:.9em;">
+        <div><label style="display:inline-flex;align-items:center;gap:6px;font-weight:normal;"><input type="checkbox" id="f_starNote" style="width:auto;"> Star note (★ in serial number, not a letter)</label></div>
+        <div><label style="display:inline-flex;align-items:center;gap:6px;font-weight:normal;"><input type="checkbox" id="f_largeSize" style="width:auto;"> Large-size note (pre-1929, noticeably bigger than modern bills)</label></div>
+      </div>
+      <label>Physical error indicators</label>
+      <div class="row" style="font-family:Arial,sans-serif;font-size:.9em;">
+        <div><label style="display:inline-flex;align-items:center;gap:6px;margin-top:2px;"><input type="checkbox" class="f_err_currency" value="Off-center printing" style="width:auto;"> Off-center printing</label>
+        <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err_currency" value="Ink smear/misprint" style="width:auto;"> Ink smear / misprint</label>
+        <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err_currency" value="Folded-corner printing error" style="width:auto;"> Folded-corner printing error</label></div>
+        <div><label style="display:inline-flex;align-items:center;gap:6px;margin-top:2px;"><input type="checkbox" class="f_err_currency" value="Mismatched serial numbers" style="width:auto;"> Mismatched serial numbers</label>
+        <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err_currency" value="Cutting/alignment error" style="width:auto;"> Cutting / alignment error</label>
+        <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err_currency" value="Other unusual feature" style="width:auto;"> Other unusual feature (describe in notes)</label></div>
+      </div>
+    </div>
+
     <div class="row">
-      <div><label>Year</label><input type="number" id="f_year" placeholder="e.g. 1931" min="1793" max="2026">
+      <div><label id="f_yearLabel">Year</label><input type="number" id="f_year" placeholder="e.g. 1931" min="1793" max="2026">
       <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-weight:normal;font-size:.85em;"><input type="checkbox" id="f_yearUnknown" style="width:auto;"> Date not legible / unknown</label>
       </div>
-      <div><label>Mint Mark</label><input id="f_mm" placeholder="e.g. S, D, CC, O, or blank for Philadelphia"></div>
       <div><label>Quantity</label><input type="number" id="f_qty" value="1" min="1"></div>
     </div>
     <div class="row">
@@ -141,21 +205,12 @@
         </select>
       </div>
     </div>
-    <label>Physical error indicators (check anything you can see — these aren't tied to a date, so the built-in reference list can't catch them by year alone)</label>
-    <div class="row" style="font-family:Arial,sans-serif;font-size:.9em;">
-      <div><label style="display:inline-flex;align-items:center;gap:6px;margin-top:2px;"><input type="checkbox" class="f_err" value="Visible doubling" style="width:auto;"> Visible doubling (letters/numbers)</label>
-      <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err" value="Off-center strike" style="width:auto;"> Off-center strike</label>
-      <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err" value="Clipped/odd-shaped planchet" style="width:auto;"> Clipped / odd-shaped planchet</label></div>
-      <div><label style="display:inline-flex;align-items:center;gap:6px;margin-top:2px;"><input type="checkbox" class="f_err" value="Wrong color/weight for date" style="width:auto;"> Wrong color or weight for the date</label>
-      <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err" value="Die crack / raised line" style="width:auto;"> Die crack / raised line</label>
-      <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;"><input type="checkbox" class="f_err" value="Other unusual feature" style="width:auto;"> Other unusual feature (describe in notes)</label></div>
-    </div>
     <label>Notes (errors, doubling, condition detail, provenance, etc.)</label>
     <textarea id="f_notes"></textarea>
     <label>Photos (optional — resized automatically for storage; nothing leaves this device)</label>
     <div class="row">
       <div>
-        <label style="margin-top:0;">Front (Obverse)</label>
+        <label style="margin-top:0;" id="f_photoFrontLabel">Front (Obverse)</label>
         <div class="row" style="align-items:center;">
           <div style="flex:2;min-width:140px;"><input type="file" id="f_photoFront" accept="image/*"></div>
           <div style="flex:0 0 auto;"><button type="button" class="btn secondary webcamOpenBtn" data-side="front" style="margin-top:0;white-space:nowrap;font-size:1.5em;line-height:1;padding:6px 12px;" title="Camera">📸</button></div>
@@ -163,7 +218,7 @@
         <img id="f_photoPreviewFront" class="thumb" style="display:none;margin-top:8px;">
       </div>
       <div>
-        <label style="margin-top:0;">Back (Reverse)</label>
+        <label style="margin-top:0;" id="f_photoBackLabel">Back (Reverse)</label>
         <div class="row" style="align-items:center;">
           <div style="flex:2;min-width:140px;"><input type="file" id="f_photoBack" accept="image/*"></div>
           <div style="flex:0 0 auto;"><button type="button" class="btn secondary webcamOpenBtn" data-side="back" style="margin-top:0;white-space:nowrap;font-size:1.5em;line-height:1;padding:6px 12px;" title="Camera">📸</button></div>
@@ -201,7 +256,7 @@
       <label style="margin:0;"><input type="checkbox" id="filterFlagged" style="width:auto;"> Flagged only</label>
       <button class="btn secondary" id="refreshListBtn" style="margin-top:0;">Refresh</button>
     </div>
-    <table id="collectionTable"><thead><tr><th>Photo</th><th>Series</th><th>Year/MM</th><th>Qty</th><th>Condition</th><th>Est. Value</th><th>Status</th><th></th></tr></thead><tbody></tbody></table>
+    <table id="collectionTable"><thead><tr><th>Photo</th><th>Series / Note Type</th><th>Year / Detail</th><th>Qty</th><th>Condition</th><th>Est. Value</th><th>Status</th><th></th></tr></thead><tbody></tbody></table>
   </div>
 </div>
 
@@ -756,6 +811,46 @@ const SILVER_WEIGHT = { // troy oz of pure silver, 90% silver coinage
 };
 const FACE_VALUE = { 'Cent': 0.01, 'Nickel': 0.05, 'Dime': 0.10, 'Quarter': 0.25, 'Half Dollar': 0.50, 'Dollar': 1.00 };
 
+const NOTE_TYPES = [
+  'Federal Reserve Note (green seal) — 1963-present',
+  'Silver Certificate (blue seal) — 1928-1957',
+  'United States Note / Legal Tender (red seal) — 1862-1966',
+  'Gold Certificate (gold/yellow seal) — pre-1934',
+  'National Bank Note (brown seal) — 1863-1935',
+  'Federal Reserve Bank Note (brown seal) — 1915, 1929, 1933',
+  'Confederate States Currency — 1861-1864',
+  'Fractional Currency — 1862-1876',
+  'Other / Not sure'
+];
+// Note types whose value varies so widely by issuing bank/district, serial, and condition
+// that a formula isn't useful — always flag these for individual research.
+const CURRENCY_RESEARCH_TYPES = ['National Bank Note', 'Federal Reserve Bank Note', 'Confederate States Currency', 'Gold Certificate', 'Fractional Currency'];
+
+function currencyDenomValue(currDenom){
+  if(!currDenom) return 0;
+  return parseFloat(String(currDenom).replace(/[^0-9.]/g,'')) || 0;
+}
+
+function estimateCurrencyValue(coin){
+  const face = currencyDenomValue(coin.currDenom) * (coin.qty||1);
+  const noteType = coin.noteType || '';
+  const needsResearch = CURRENCY_RESEARCH_TYPES.some(t => noteType.includes(t));
+  if(needsResearch){
+    return {low: face, high: Math.max(face, face*20), label: `${noteType || 'This note type'} — value varies enormously by issuing bank/district, serial number, and condition; there\'s no reliable flat formula. Shown at face value as a floor only — research this one individually (PMG/PCGS Currency population reports, Heritage Auctions past sales).`, flagged:true};
+  }
+  const premiumNotes = [];
+  let mult = 1;
+  if(coin.largeSize){ mult += 2; premiumNotes.push('large-size note (pre-1929)'); }
+  if(coin.starNote){ mult += 0.5; premiumNotes.push('star note'); }
+  if(premiumNotes.length){
+    return {low: face, high: Math.round(face*mult*100)/100, label: `Common note, but flagged: ${premiumNotes.join(' + ')}. Collector premium depends heavily on condition (crisp/uncirculated is worth far more than circulated) and, for star notes, how low the print run was — check serial number databases before assuming this formula is accurate.`, flagged:true};
+  }
+  if(face > 0){
+    return {low: face, high: face, label:'Common modern note — no collector premium expected unless the condition is crisp uncirculated or the serial number is unusual (repeating digits, low number like 00000123, ladder, radar/palindrome, or a match to your birth year). Always worth at least face value.', flagged:false};
+  }
+  return {low:0, high:0, label:'No face value could be determined. Research this one manually.', flagged:false};
+}
+
 const SERIES = [
   'Indian Head Cent (1859-1909)',
   'Lincoln Wheat Cent (1909-1958)',
@@ -917,15 +1012,26 @@ function csvEscape(v){
   return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
 }
 function buildCsv(){
-  const headers = ['Date Added','Series','Denomination','Year','Mint Mark','Quantity','Condition','Status','Flagged','Est Value Low','Est Value High','Match / Flag Reason','Physical Error Indicators','Has Front Photo','Has Back Photo','Notes'];
-  const rows = coins.map(c => [
-    c.dateAdded ? new Date(c.dateAdded).toLocaleString() : '',
-    c.series, c.denom, c.year || 'Unknown', c.mm, c.qty, c.cond, c.status,
-    c.flagged ? 'Yes' : 'No',
-    (c.estLow||0).toFixed(2), (c.estHigh||0).toFixed(2),
-    c.matchLabel || '', (c.physicalErrors||[]).join('; '),
-    c.photoFront ? 'Yes' : 'No', c.photoBack ? 'Yes' : 'No', c.notes || ''
-  ]);
+  const headers = ['Date Added','Item Type','Series / Note Type','Denomination','Year','Mint Mark / Serial Number','Star Note','Large Size','Fed Reserve District','Quantity','Condition','Status','Flagged','Est Value Low','Est Value High','Match / Flag Reason','Physical Error Indicators','Has Front Photo','Has Back Photo','Notes'];
+  const rows = coins.map(c => {
+    const isCurrency = c.itemType==='Currency';
+    return [
+      c.dateAdded ? new Date(c.dateAdded).toLocaleString() : '',
+      c.itemType || 'Coin',
+      isCurrency ? (c.noteType||'') : c.series,
+      isCurrency ? (c.currDenom||'') : c.denom,
+      c.year || 'Unknown',
+      isCurrency ? (c.serial||'') : c.mm,
+      isCurrency ? (c.starNote ? 'Yes' : 'No') : '',
+      isCurrency ? (c.largeSize ? 'Yes' : 'No') : '',
+      isCurrency ? (c.district||'') : '',
+      c.qty, c.cond, c.status,
+      c.flagged ? 'Yes' : 'No',
+      (c.estLow||0).toFixed(2), (c.estHigh||0).toFixed(2),
+      c.matchLabel || '', (c.physicalErrors||[]).join('; '),
+      c.photoFront ? 'Yes' : 'No', c.photoBack ? 'Yes' : 'No', c.notes || ''
+    ];
+  });
   return [headers, ...rows].map(r => r.map(csvEscape).join(',')).join('\r\n');
 }
 
@@ -962,7 +1068,7 @@ async function buildPdfBlob(){
   function line(){ ensureSpace(4); doc.setDrawColor(200); doc.line(MARGIN, y, PAGE_W-MARGIN, y); y += 5; }
 
   doc.setFontSize(18); doc.setFont(undefined,'bold');
-  doc.text('Coin Collection Catalog', MARGIN, y); y += 8;
+  doc.text('Coin & Currency Collection Catalog', MARGIN, y); y += 8;
   doc.setFontSize(10); doc.setFont(undefined,'normal');
   doc.text('Generated ' + new Date().toLocaleString(), MARGIN, y); y += 8;
 
@@ -970,11 +1076,11 @@ async function buildPdfBlob(){
   const totalLow = coins.reduce((s,c)=>s+(c.estLow||0),0);
   const totalHigh = coins.reduce((s,c)=>s+(c.estHigh||0),0);
   doc.setFontSize(11);
-  doc.text(`${coins.length} coins logged  |  ${flagged.length} flagged for closer attention  |  Estimated range: $${totalLow.toLocaleString()} - $${totalHigh.toLocaleString()}`, MARGIN, y);
+  doc.text(`${coins.length} item(s) logged  |  ${flagged.length} flagged for closer attention  |  Estimated range: $${totalLow.toLocaleString()} - $${totalHigh.toLocaleString()}`, MARGIN, y);
   y += 10;
 
   function renderCoinBlock(c){
-    const title = `${c.series} — ${c.year || 'Unknown year'}${c.mm?' '+c.mm:''}  (Qty ${c.qty})`;
+    const title = `${itemTitle(c)} — ${itemSubtitle(c)}  (Qty ${c.qty})`;
     const titleLines = doc.splitTextToSize(title, MAXW);
     const detail = `Condition: ${c.cond}   Status: ${c.status}   Est. value: $${(c.estLow||0).toLocaleString()}-$${(c.estHigh||0).toLocaleString()}`;
     const extras = [];
@@ -1013,7 +1119,7 @@ async function buildPdfBlob(){
     y += 4;
   }
   heading('Full Collection', 13); y += 2;
-  coins.slice().sort((a,b)=> (a.series||'').localeCompare(b.series||'') || (a.year||0)-(b.year||0)).forEach(renderCoinBlock);
+  coins.slice().sort((a,b)=> itemTitle(a).localeCompare(itemTitle(b)) || (a.year||0)-(b.year||0)).forEach(renderCoinBlock);
 
   return doc.output('blob');
 }
@@ -1033,7 +1139,7 @@ function updateSyncStatus(state, detail){
     unsupported: '⚠ This browser doesn\'t support automatic file saving (needs Chrome or Edge). Use Export/Import below instead.',
     disconnected: 'Not connected. Click "Connect OneDrive Folder" to start auto-saving a spreadsheet + PDF there every time you log a coin.',
     'needs-permission': '⚠ Connection needs to be reconfirmed for this browser session. Click "Reconnect" below.',
-    connected: `✓ Connected — auto-saving "Coin Collection.csv" and "Coin Collection Catalog.pdf" (${n} coin${n===1?'':'s'})` + (settings.lastSync ? `. Last synced ${new Date(settings.lastSync).toLocaleTimeString()}.` : '.'),
+    connected: `✓ Connected — auto-saving "Coin Collection.csv" and "Coin Collection Catalog.pdf" (${n} item${n===1?'':'s'})` + (settings.lastSync ? `. Last synced ${new Date(settings.lastSync).toLocaleTimeString()}.` : '.'),
     error: '⚠ Sync failed: ' + (detail||'unknown error') + '. Your data is still safe in this browser — try "Sync Now" or use Export/Import.'
   };
   el.textContent = msgs[state] || '';
@@ -1096,6 +1202,7 @@ function findMatch(series, year, mm){
 }
 
 function estimateValue(coin){
+  if(coin.itemType === 'Currency') return estimateCurrencyValue(coin);
   const match = findMatch(coin.series, coin.year, coin.mm);
   if(match){
     return {low: match.low, high: match.high, label: match.label, flagged:true, verifyOnly: !!match.verifyOnly};
@@ -1118,8 +1225,22 @@ function estimateValue(coin){
   return {low:0, high:0, label:'No catalogued key date or error found, and no face value could be determined. Research this one manually. Ask Claude to web-search this specific coin if you\'re still unsure.', flagged:false};
 }
 
+function currentItemType(){
+  return document.getElementById('f_itemTypeCurrency').checked ? 'Currency' : 'Coin';
+}
 function getCheckedErrors(){
-  return Array.from(document.querySelectorAll('.f_err:checked')).map(cb=>cb.value);
+  const cls = currentItemType()==='Currency' ? '.f_err_currency' : '.f_err_coin';
+  return Array.from(document.querySelectorAll(cls+':checked')).map(cb=>cb.value);
+}
+
+// Shared display helpers so list/dashboard/CSV/PDF render coins and currency notes consistently.
+function itemTitle(c){
+  if(c.itemType==='Currency') return `${c.currDenom||''} ${c.noteType||''}`.trim();
+  return c.series;
+}
+function itemSubtitle(c){
+  if(c.itemType==='Currency') return (c.year || 'Unknown') + (c.starNote?' ★ star note':'') + (c.serial?' — S/N '+c.serial:'');
+  return (c.year || 'Unknown') + (c.mm?' '+c.mm:'');
 }
 
 /* ---------------- Nav ---------------- */
@@ -1148,6 +1269,22 @@ function showTab(id){
 /* ---------------- Add Coin form ---------------- */
 const fSeries = document.getElementById('f_series');
 SERIES.forEach(s=>{ const o=document.createElement('option'); o.textContent=s; fSeries.appendChild(o); });
+
+const fNoteType = document.getElementById('f_noteType');
+NOTE_TYPES.forEach(s=>{ const o=document.createElement('option'); o.textContent=s; fNoteType.appendChild(o); });
+
+function updateItemTypeUI(){
+  const isCurrency = currentItemType()==='Currency';
+  document.getElementById('coinFields').style.display = isCurrency ? 'none' : 'block';
+  document.getElementById('currencyFields').style.display = isCurrency ? 'block' : 'none';
+  document.getElementById('f_yearLabel').textContent = isCurrency ? 'Series Year (on the note)' : 'Year';
+  document.getElementById('f_photoFrontLabel').textContent = isCurrency ? 'Front (Face)' : 'Front (Obverse)';
+  document.getElementById('f_photoBackLabel').textContent = isCurrency ? 'Back' : 'Back (Reverse)';
+  if(!editingCoinId) document.getElementById('saveBtn').textContent = isCurrency ? 'Save Note' : 'Save Coin';
+  updateMatchPreview();
+}
+document.getElementById('f_itemTypeCoin').addEventListener('change', updateItemTypeUI);
+document.getElementById('f_itemTypeCurrency').addEventListener('change', updateItemTypeUI);
 
 let pendingPhotoFront = null, pendingPhotoBack = null;
 function setPendingPhoto(side, dataUrl){
@@ -1270,19 +1407,24 @@ document.getElementById('captureBtn').addEventListener('click', ()=>{
 });
 
 /* ---------------- AI identification ---------------- */
-const AI_IDENTIFY_PROMPT = `Identify this US coin from the photo(s) provided (front and/or back of one coin) for a collector's cataloging app. Be honest about uncertainty — if a date or mint mark isn't clearly legible, say "unclear" rather than guessing. Do not authenticate rare errors or varieties; just report what is visibly readable.`;
+const AI_IDENTIFY_PROMPT = `Identify this item from the photo(s) provided (front and/or back of one item) for a collector's cataloging app — it will be either a US coin or a piece of US paper currency (a bill/note). First decide which it is, then fill in only the fields that apply to that type (leave the other type's fields as empty strings). Be honest about uncertainty — if a date, mint mark, or serial number isn't clearly legible, say "unclear" rather than guessing. Do not authenticate rare errors or varieties; just report what is visibly readable.`;
 
 const AI_IDENTIFY_SCHEMA = {
   type: "object",
   properties: {
-    series: {type:"string", description:"Best-guess series name, e.g. \"Lincoln Wheat Cent (1909-1958)\", \"Indian Head Cent (1859-1909)\", \"Buffalo Nickel (1913-1938)\", \"Jefferson Nickel (1938-present)\", \"Barber Dime (1892-1916)\", \"Mercury Dime (1916-1945)\", \"Roosevelt Dime (1946-present)\", \"Barber Quarter (1892-1916)\", \"Standing Liberty Quarter (1916-1930)\", \"Washington Quarter (1932-present)\", \"Barber Half Dollar (1892-1915)\", \"Walking Liberty Half Dollar (1916-1947)\", \"Franklin Half Dollar (1948-1963)\", \"Kennedy Half Dollar (1964-present)\", \"Morgan Dollar (1878-1904, 1921)\", \"Peace Dollar (1921-1935)\", or another accurate US coin series name if none of these fit"},
+    itemType: {type:"string", enum:["Coin","Currency"], description:"Whether the photographed item is a coin or a piece of paper currency (bill/note)"},
+    series: {type:"string", description:"COINS ONLY (empty string '' for currency): best-guess series name, e.g. \"Lincoln Wheat Cent (1909-1958)\", \"Indian Head Cent (1859-1909)\", \"Buffalo Nickel (1913-1938)\", \"Jefferson Nickel (1938-present)\", \"Barber Dime (1892-1916)\", \"Mercury Dime (1916-1945)\", \"Roosevelt Dime (1946-present)\", \"Barber Quarter (1892-1916)\", \"Standing Liberty Quarter (1916-1930)\", \"Washington Quarter (1932-present)\", \"Barber Half Dollar (1892-1915)\", \"Walking Liberty Half Dollar (1916-1947)\", \"Franklin Half Dollar (1948-1963)\", \"Kennedy Half Dollar (1964-present)\", \"Morgan Dollar (1878-1904, 1921)\", \"Peace Dollar (1921-1935)\", or another accurate US coin series name if none of these fit"},
     year: {type:"string", description:"4-digit year if legible in the photo, otherwise the literal string 'unclear'"},
-    mintmark: {type:"string", description:"Mint mark letter if visible (S, D, CC, O), 'none' if visibly absent (Philadelphia), or 'unclear' if it cannot be read"},
+    mintmark: {type:"string", description:"COINS ONLY (empty string '' for currency): mint mark letter if visible (S, D, CC, O), 'none' if visibly absent (Philadelphia), or 'unclear' if it cannot be read"},
+    currDenom: {type:"string", description:"CURRENCY ONLY (empty string '' for coins): the dollar denomination printed on the note, e.g. '$1', '$2', '$5', '$10', '$20', '$50', '$100'"},
+    noteType: {type:"string", description:"CURRENCY ONLY (empty string '' for coins): best-guess note type by seal color/wording, e.g. \"Federal Reserve Note (green seal) — 1963-present\", \"Silver Certificate (blue seal) — 1928-1957\", \"United States Note / Legal Tender (red seal) — 1862-1966\", \"Gold Certificate (gold/yellow seal) — pre-1934\", \"National Bank Note (brown seal) — 1863-1935\", \"Confederate States Currency — 1861-1864\", \"Fractional Currency — 1862-1876\", or another accurate description if none fit"},
+    serial: {type:"string", description:"CURRENCY ONLY (empty string '' for coins): the serial number if legible, otherwise empty string ''"},
+    starNote: {type:"boolean", description:"CURRENCY ONLY: true if the serial number ends with a ★ star symbol instead of a letter (a star note), false otherwise or for coins"},
     condition: {type:"string", enum:["Poor/Fair","Good","Very Good","Fine","Very Fine","Extremely Fine","About Uncirculated","Uncirculated","unsure"]},
     confidence: {type:"string", enum:["High","Medium","Low"]},
-    notes: {type:"string", description:"One or two sentences on anything notable — doubling, wear pattern, possible errors, or why confidence is low."}
+    notes: {type:"string", description:"One or two sentences on anything notable — doubling, wear pattern, possible errors/misprints, or why confidence is low."}
   },
-  required: ["series","year","mintmark","condition","confidence","notes"],
+  required: ["itemType","series","year","mintmark","currDenom","noteType","serial","starNote","condition","confidence","notes"],
   additionalProperties: false
 };
 
@@ -1310,23 +1452,51 @@ function matchKnownSeries(seriesGuess){
   return partial ? partial.textContent : null;
 }
 
+// Matches an AI-guessed note type against this app's NOTE_TYPES dropdown.
+function matchKnownNoteType(noteTypeGuess){
+  if(!noteTypeGuess) return null;
+  const opts = Array.from(fNoteType.options).filter(o => o.textContent !== 'Other / Not sure');
+  const exact = opts.find(o => o.textContent.toLowerCase() === noteTypeGuess.toLowerCase());
+  if(exact) return exact.textContent;
+  const base = noteTypeGuess.split(' (')[0].toLowerCase();
+  const partial = opts.find(o => o.textContent.toLowerCase().includes(base));
+  return partial ? partial.textContent : null;
+}
+
+const CURRENCY_DENOMS = ['$1','$2','$5','$10','$20','$50','$100','$500','$1000','$5000','$10000'];
+
 function applyAiIdentification(result){
-  const series = result.series || '';
+  const isCurrency = result.itemType === 'Currency';
+  document.getElementById(isCurrency ? 'f_itemTypeCurrency' : 'f_itemTypeCoin').checked = true;
+  updateItemTypeUI();
+
   const year = result.year || '';
-  const mm = result.mintmark || '';
   const condition = result.condition || '';
   const confidence = result.confidence || '';
   const notes = result.notes || '';
 
-  if(series){
-    const matched = matchKnownSeries(series);
-    fSeries.value = matched || 'Other / Not sure';
-    const denom = denominationFromSeriesName(matched || series);
-    if(denom) document.getElementById('f_denom').value = denom;
+  if(isCurrency){
+    const denom = (result.currDenom||'').trim();
+    if(denom && CURRENCY_DENOMS.includes(denom)) document.getElementById('f_currDenom').value = denom;
+    const noteType = result.noteType || '';
+    if(noteType) fNoteType.value = matchKnownNoteType(noteType) || 'Other / Not sure';
+    const serial = (result.serial||'').trim();
+    if(serial && serial.toLowerCase() !== 'unclear') document.getElementById('f_serial').value = serial;
+    document.getElementById('f_starNote').checked = !!result.starNote;
+  } else {
+    const series = result.series || '';
+    if(series){
+      const matched = matchKnownSeries(series);
+      fSeries.value = matched || 'Other / Not sure';
+      const denom = denominationFromSeriesName(matched || series);
+      if(denom) document.getElementById('f_denom').value = denom;
+    }
+    const mm = result.mintmark || '';
+    if(mm && !['unclear','none',''].includes(mm.toLowerCase())) document.getElementById('f_mm').value = mm;
   }
+
   if(/^\d{4}$/.test(year)){ document.getElementById('f_year').value = year; setYearUnknown(false); }
   else { setYearUnknown(true); }
-  if(mm && !['unclear','none',''].includes(mm.toLowerCase())) document.getElementById('f_mm').value = mm;
 
   const condMap = {
     'poor/fair':'Poor / Fair (barely identifiable)', 'poor':'Poor / Fair (barely identifiable)', 'fair':'Poor / Fair (barely identifiable)',
@@ -1350,7 +1520,7 @@ function applyAiIdentification(result){
   notesEl.value = notesEl.value ? notesEl.value + '\n\n' + aiNote : aiNote;
 
   updateMatchPreview();
-  alert('AI identification applied. Review every field below — especially year and mint mark on anything that looks valuable — before saving.');
+  alert(`AI identification applied (detected as ${isCurrency?'currency':'a coin'}). Review every field below — especially year, mint mark/serial number, and denomination on anything that looks valuable — before saving.`);
 }
 
 // Core AI call, shared by the single-coin "Identify with AI" button and Bulk Import.
@@ -1442,7 +1612,7 @@ async function identifyCoinWithAI(){
   btn.disabled = true; btn.textContent = '🤖 Identifying...';
   try{
     const result = await callAiIdentify(pendingPhotoFront, pendingPhotoBack, true);
-    if(!matchKnownSeries(result.series)){
+    if(result.itemType !== 'Currency' && !matchKnownSeries(result.series)){
       btn.textContent = '🤖 Not a common series — searching further...';
       try{
         const deep = await deepIdentifyWithSearch(pendingPhotoFront, pendingPhotoBack, result.series);
@@ -1545,7 +1715,7 @@ document.getElementById('bulkStartBtn').addEventListener('click', async ()=>{
     progressBar.style.width = Math.round((i/bulkPairs.length)*100) + '%';
     try{
       const result = await callAiIdentify(pair.front.dataUrl, pair.back ? pair.back.dataUrl : null, true);
-      if(!matchKnownSeries(result.series)){
+      if(result.itemType !== 'Currency' && !matchKnownSeries(result.series)){
         progressText.textContent = `Processing ${i+1} of ${bulkPairs.length}: not a common series, searching further...`;
         try{
           const deep = await deepIdentifyWithSearch(pair.front.dataUrl, pair.back ? pair.back.dataUrl : null, result.series);
@@ -1582,13 +1752,8 @@ document.getElementById('bulkStartBtn').addEventListener('click', async ()=>{
 });
 
 function buildCoinFromAiResult(result, photoFront, photoBack){
-  const series = result.series || '';
-  const matched = matchKnownSeries(series);
-  const matchedSeries = matched || 'Other / Not sure';
-  const denom = denominationFromSeriesName(matched || series) || 'Cent';
-
+  const isCurrency = result.itemType === 'Currency';
   const year = /^\d{4}$/.test(result.year) ? Number(result.year) : null;
-  const mm = (result.mintmark && !['unclear','none',''].includes(result.mintmark.toLowerCase())) ? result.mintmark : '';
 
   const condMap = {
     'poor/fair':'Poor / Fair (barely identifiable)', 'poor':'Poor / Fair (barely identifiable)', 'fair':'Poor / Fair (barely identifiable)',
@@ -1602,40 +1767,74 @@ function buildCoinFromAiResult(result, photoFront, photoBack){
   const coin = {
     id: Date.now()+'-'+Math.random().toString(36).slice(2,7),
     dateAdded: new Date().toISOString(),
-    series: matchedSeries, denom, year, mm, qty: 1, cond,
+    itemType: isCurrency ? 'Currency' : 'Coin',
+    year, qty: 1, cond,
     status: 'Not yet reviewed',
     notes: `AI identification (confidence: ${result.confidence||'unknown'} — verify before trusting): ${result.notes||'(no notes returned)'}`,
     photoFront, photoBack, physicalErrors: []
   };
+  if(isCurrency){
+    const denom = (result.currDenom||'').trim();
+    coin.currDenom = CURRENCY_DENOMS.includes(denom) ? denom : '$1';
+    coin.noteType = matchKnownNoteType(result.noteType||'') || 'Other / Not sure';
+    const serial = (result.serial||'').trim();
+    coin.serial = serial.toLowerCase() !== 'unclear' ? serial : '';
+    coin.starNote = !!result.starNote;
+    coin.district = '';
+    coin.largeSize = false;
+  } else {
+    const series = result.series || '';
+    const matched = matchKnownSeries(series);
+    coin.series = matched || 'Other / Not sure';
+    coin.denom = denominationFromSeriesName(matched || series) || 'Cent';
+    coin.mm = (result.mintmark && !['unclear','none',''].includes(result.mintmark.toLowerCase())) ? result.mintmark : '';
+  }
   const est = estimateValue(coin);
   coin.estLow = est.low; coin.estHigh = est.high; coin.matchLabel = est.label; coin.flagged = est.flagged;
   return coin;
 }
 
 function updateMatchPreview(){
-  const series = fSeries.value, year = document.getElementById('f_year').value, mm = document.getElementById('f_mm').value;
+  const itemType = currentItemType();
+  const year = document.getElementById('f_year').value;
   const yearUnknown = document.getElementById('f_yearUnknown').checked;
   const box = document.getElementById('matchBox');
   const physicalErrors = getCheckedErrors();
   let html = '';
-  if(series && (year || yearUnknown)){
-    const est = estimateValue({series, year, mm, denom: document.getElementById('f_denom').value, qty: Number(document.getElementById('f_qty').value)||1});
+  if(itemType==='Currency'){
+    const est = estimateValue({itemType, currDenom: document.getElementById('f_currDenom').value, noteType: fNoteType.value,
+      starNote: document.getElementById('f_starNote').checked, largeSize: document.getElementById('f_largeSize').checked,
+      qty: Number(document.getElementById('f_qty').value)||1});
     if(est.flagged){
-      html += `<div class="flagbox">⚑ <strong>Possible key date/variety match:</strong> ${est.label}<br>Estimated range: <span class="est">$${est.low.toLocaleString()} – $${est.high.toLocaleString()}</span>${est.verifyOnly?'<br><em>Verification required before trusting this value — see How To tab.</em>':''}</div>`;
+      html += `<div class="flagbox">⚑ <strong>Flagged for research:</strong> ${est.label}<br>Estimated range: <span class="est">$${est.low.toLocaleString()} – $${est.high.toLocaleString()}</span></div>`;
     } else if(est.low>0){
       html += `<div class="refnote">${est.label}<br>Estimated value: <span class="est">$${est.low.toFixed(2)} – $${est.high.toFixed(2)}</span></div>`;
     } else {
       html += `<div class="refnote">${est.label}</div>`;
     }
+  } else {
+    const series = fSeries.value, mm = document.getElementById('f_mm').value;
+    if(series && (year || yearUnknown)){
+      const est = estimateValue({series, year, mm, denom: document.getElementById('f_denom').value, qty: Number(document.getElementById('f_qty').value)||1});
+      if(est.flagged){
+        html += `<div class="flagbox">⚑ <strong>Possible key date/variety match:</strong> ${est.label}<br>Estimated range: <span class="est">$${est.low.toLocaleString()} – $${est.high.toLocaleString()}</span>${est.verifyOnly?'<br><em>Verification required before trusting this value — see How To tab.</em>':''}</div>`;
+      } else if(est.low>0){
+        html += `<div class="refnote">${est.label}<br>Estimated value: <span class="est">$${est.low.toFixed(2)} – $${est.high.toFixed(2)}</span></div>`;
+      } else {
+        html += `<div class="refnote">${est.label}</div>`;
+      }
+    }
   }
   if(physicalErrors.length){
-    html += `<div class="flagbox">⚑ <strong>Physical error indicator(s) checked:</strong> ${physicalErrors.join(', ')}. This coin will be flagged for closer attention regardless of date match — verify under magnification, and consider asking Claude to search for this specific variety.</div>`;
+    html += `<div class="flagbox">⚑ <strong>Physical error indicator(s) checked:</strong> ${physicalErrors.join(', ')}. This item will be flagged for closer attention — verify under magnification, and consider asking Claude to search for this specific variety.</div>`;
   }
   box.innerHTML = html;
 }
-['f_series','f_year','f_mm','f_denom','f_qty'].forEach(id=>document.getElementById(id).addEventListener('input', updateMatchPreview));
+['f_series','f_year','f_mm','f_denom','f_qty','f_currDenom','f_serial'].forEach(id=>document.getElementById(id).addEventListener('input', updateMatchPreview));
 fSeries.addEventListener('change', updateMatchPreview);
-document.querySelectorAll('.f_err').forEach(cb=>cb.addEventListener('change', updateMatchPreview));
+fNoteType.addEventListener('change', updateMatchPreview);
+['f_starNote','f_largeSize'].forEach(id=>document.getElementById(id).addEventListener('change', updateMatchPreview));
+document.querySelectorAll('.f_err_coin, .f_err_currency').forEach(cb=>cb.addEventListener('change', updateMatchPreview));
 
 function setYearUnknown(unknown){
   const yearInput = document.getElementById('f_year');
@@ -1651,7 +1850,7 @@ document.getElementById('f_yearUnknown').addEventListener('change', (e)=>{
 let editingCoinId = null;
 
 document.getElementById('saveBtn').addEventListener('click', ()=>{
-  const series = fSeries.value;
+  const itemType = currentItemType();
   const year = document.getElementById('f_year').value;
   const yearUnknown = document.getElementById('f_yearUnknown').checked;
   if(!year && !yearUnknown){ alert('Enter a year, or check "Date not legible / unknown".'); return; }
@@ -1659,8 +1858,8 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
   const coin = {
     id: existing ? existing.id : (Date.now()+'-'+Math.random().toString(36).slice(2,7)),
     dateAdded: existing ? existing.dateAdded : new Date().toISOString(),
-    series, denom: document.getElementById('f_denom').value,
-    year: yearUnknown ? null : Number(year), mm: document.getElementById('f_mm').value.trim(),
+    itemType,
+    year: yearUnknown ? null : Number(year),
     qty: Number(document.getElementById('f_qty').value)||1,
     cond: document.getElementById('f_cond').value,
     status: document.getElementById('f_status').value,
@@ -1668,13 +1867,25 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
     photoFront: pendingPhotoFront,
     photoBack: pendingPhotoBack
   };
+  if(itemType==='Currency'){
+    coin.currDenom = document.getElementById('f_currDenom').value;
+    coin.noteType = fNoteType.value;
+    coin.serial = document.getElementById('f_serial').value.trim();
+    coin.district = document.getElementById('f_district').value;
+    coin.starNote = document.getElementById('f_starNote').checked;
+    coin.largeSize = document.getElementById('f_largeSize').checked;
+  } else {
+    coin.series = fSeries.value;
+    coin.denom = document.getElementById('f_denom').value;
+    coin.mm = document.getElementById('f_mm').value.trim();
+  }
   const est = estimateValue(coin);
   const physicalErrors = getCheckedErrors();
   coin.estLow = est.low; coin.estHigh = est.high; coin.matchLabel = est.label;
   coin.physicalErrors = physicalErrors;
   if(physicalErrors.length){
     coin.flagged = true;
-    coin.matchLabel = 'Physical error indicator(s) noted: ' + physicalErrors.join(', ') + '. Not in the year/mintmark database — needs manual verification.' + (est.flagged ? ' Also matched: ' + est.label : '');
+    coin.matchLabel = 'Physical/visual error indicator(s) noted: ' + physicalErrors.join(', ') + '. Not covered by the built-in reference data — needs manual verification.' + (est.flagged ? ' Also matched: ' + est.label : '');
   } else {
     coin.flagged = est.flagged;
   }
@@ -1693,11 +1904,23 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
 
 function loadCoinForEdit(coin){
   editingCoinId = coin.id;
-  fSeries.value = coin.series;
-  document.getElementById('f_denom').value = coin.denom;
+  const isCurrency = coin.itemType === 'Currency';
+  document.getElementById(isCurrency ? 'f_itemTypeCurrency' : 'f_itemTypeCoin').checked = true;
+  updateItemTypeUI();
+  if(isCurrency){
+    document.getElementById('f_currDenom').value = coin.currDenom || '$1';
+    fNoteType.value = coin.noteType || NOTE_TYPES[0];
+    document.getElementById('f_serial').value = coin.serial || '';
+    document.getElementById('f_district').value = coin.district || '';
+    document.getElementById('f_starNote').checked = !!coin.starNote;
+    document.getElementById('f_largeSize').checked = !!coin.largeSize;
+  } else {
+    fSeries.value = coin.series;
+    document.getElementById('f_denom').value = coin.denom;
+    document.getElementById('f_mm').value = coin.mm || '';
+  }
   if(coin.year){ document.getElementById('f_year').value = coin.year; setYearUnknown(false); }
   else { setYearUnknown(true); }
-  document.getElementById('f_mm').value = coin.mm || '';
   document.getElementById('f_qty').value = coin.qty || 1;
   const condOpts = Array.from(document.getElementById('f_cond').options);
   const cIdx = condOpts.findIndex(o=>o.textContent===coin.cond);
@@ -1708,10 +1931,11 @@ function loadCoinForEdit(coin){
   document.getElementById('f_notes').value = coin.notes || '';
   setPendingPhoto('front', coin.photoFront || null);
   setPendingPhoto('back', coin.photoBack || null);
-  document.querySelectorAll('.f_err').forEach(cb=>{ cb.checked = (coin.physicalErrors||[]).includes(cb.value); });
-  document.getElementById('saveBtn').textContent = 'Update Coin';
+  document.querySelectorAll('.f_err_coin, .f_err_currency').forEach(cb=>{ cb.checked = (coin.physicalErrors||[]).includes(cb.value); });
+  document.getElementById('saveBtn').textContent = isCurrency ? 'Update Note' : 'Update Coin';
   const banner = document.getElementById('editingBanner');
-  banner.innerHTML = `✏️ <strong>Editing:</strong> ${coin.series} — ${coin.year || 'Unknown year'}${coin.mm?' '+coin.mm:''}. Click "Update Coin" below to save changes, or "Clear Form" to cancel without saving.`;
+  const title = isCurrency ? `${coin.currDenom||''} ${coin.noteType||''}` : `${coin.series} — ${coin.year || 'Unknown year'}${coin.mm?' '+coin.mm:''}`;
+  banner.innerHTML = `✏️ <strong>Editing:</strong> ${title}. Click "Update" below to save changes, or "Clear Form" to cancel without saving.`;
   banner.style.display = 'block';
   updateMatchPreview();
   showTab('add');
@@ -1721,6 +1945,8 @@ function clearForm(){
   editingCoinId = null;
   document.getElementById('saveBtn').textContent = 'Save Coin';
   document.getElementById('editingBanner').style.display = 'none';
+  document.getElementById('f_itemTypeCoin').checked = true;
+  updateItemTypeUI();
   setYearUnknown(false);
   document.getElementById('f_year').value='';
   document.getElementById('f_mm').value='';
@@ -1732,7 +1958,13 @@ function clearForm(){
   document.getElementById('f_photoBack').value='';
   setPendingPhoto('front', null);
   setPendingPhoto('back', null);
-  document.querySelectorAll('.f_err:checked').forEach(cb=>cb.checked=false);
+  document.getElementById('f_currDenom').selectedIndex=0;
+  fNoteType.selectedIndex=0;
+  document.getElementById('f_serial').value='';
+  document.getElementById('f_district').value='';
+  document.getElementById('f_starNote').checked=false;
+  document.getElementById('f_largeSize').checked=false;
+  document.querySelectorAll('.f_err_coin:checked, .f_err_currency:checked').forEach(cb=>cb.checked=false);
   document.getElementById('matchBox').innerHTML='';
   stopWebcam();
 }
@@ -1741,7 +1973,12 @@ window.addEventListener('beforeunload', stopWebcam);
 
 /* ---------------- Dashboard ---------------- */
 function renderDashboard(){
-  document.getElementById('headerSub').textContent = coins.length + ' coin' + (coins.length===1?'':'s') + ' logged';
+  const numCoins = coins.filter(c=>c.itemType!=='Currency').length;
+  const numNotes = coins.filter(c=>c.itemType==='Currency').length;
+  const parts = [];
+  if(numCoins) parts.push(numCoins + ' coin' + (numCoins===1?'':'s'));
+  if(numNotes) parts.push(numNotes + ' note' + (numNotes===1?'':'s'));
+  document.getElementById('headerSub').textContent = (parts.join(', ') || '0 items') + ' logged';
   const flagged = coins.filter(c=>c.flagged);
   const totalLow = coins.reduce((s,c)=>s+(c.estLow||0),0);
   const totalHigh = coins.reduce((s,c)=>s+(c.estHigh||0),0);
@@ -1750,8 +1987,8 @@ function renderDashboard(){
   const unreviewed = coins.filter(c=>c.status==='Not yet reviewed').length;
 
   document.getElementById('statGrid').innerHTML = `
-    <div class="stat"><div class="num">${coins.length}</div><div class="lbl">Coins logged</div></div>
-    <div class="stat"><div class="num">${flagged.length}</div><div class="lbl">Flagged — possible key dates</div></div>
+    <div class="stat"><div class="num">${coins.length}</div><div class="lbl">Items logged</div></div>
+    <div class="stat"><div class="num">${flagged.length}</div><div class="lbl">Flagged — possible key dates / notable notes</div></div>
     <div class="stat"><div class="num">$${totalLow.toLocaleString()}–$${totalHigh.toLocaleString()}</div><div class="lbl">Estimated collection range</div></div>
     <div class="stat"><div class="num">${unreviewed}</div><div class="lbl">Not yet reviewed</div></div>
     <div class="stat"><div class="num">${needsGrading}</div><div class="lbl">Queued for grading</div></div>
@@ -1762,7 +1999,7 @@ function renderDashboard(){
   tbody.innerHTML = '';
   flagged.sort((a,b)=>(b.estHigh||0)-(a.estHigh||0)).forEach(c=>{
     const tr = document.createElement('tr'); tr.className='flagged';
-    tr.innerHTML = `<td>${c.series} — ${c.year || 'Unknown year'}${c.mm? ' '+c.mm:''}</td>
+    tr.innerHTML = `<td>${itemTitle(c)} — ${itemSubtitle(c)}</td>
       <td>$${(c.estLow||0).toLocaleString()}–$${(c.estHigh||0).toLocaleString()}</td>
       <td>${c.status}</td><td>${c.matchLabel||''}</td>`;
     tbody.appendChild(tr);
@@ -1793,17 +2030,17 @@ function renderList(){
     if(flaggedOnly && !c.flagged) return false;
     if(statusF && c.status!==statusF) return false;
     if(q){
-      const hay = (c.series+' '+(c.year||'')+' '+c.mm+' '+c.notes).toLowerCase();
+      const hay = (itemTitle(c)+' '+(c.year||'')+' '+(c.mm||'')+' '+(c.serial||'')+' '+c.notes).toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   }).forEach(c=>{
     const tr = document.createElement('tr'); if(c.flagged) tr.className='flagged';
     tr.style.cursor = 'pointer';
-    tr.title = 'Click to view / edit this coin';
+    tr.title = 'Click to view / edit this item';
     tr.innerHTML = `<td>${c.photoFront?`<img class="thumb" src="${c.photoFront}" title="Front">`:''}${c.photoBack?`<img class="thumb" src="${c.photoBack}" title="Back" style="margin-left:4px;">`:''}</td>
-      <td>${c.series}</td>
-      <td>${c.year || 'Unknown'}${c.mm?' '+c.mm:''}</td>
+      <td>${itemTitle(c)}</td>
+      <td>${itemSubtitle(c)}</td>
       <td>${c.qty}</td>
       <td>${c.cond}</td>
       <td>$${(c.estLow||0).toLocaleString()}–$${(c.estHigh||0).toLocaleString()}${c.flagged?' <span class="badge flag">flag</span>':''}</td>

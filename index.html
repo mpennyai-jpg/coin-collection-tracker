@@ -173,6 +173,10 @@
       <div class="small" id="webcamTargetLabel" style="margin-bottom:4px;"></div>
       <div style="display:none;" id="webcamDeviceRow"><label style="margin-top:0;">Camera</label><select id="webcamDeviceSelect"></select></div>
       <video id="webcamVideo" autoplay playsinline muted style="width:100%;max-width:360px;border-radius:6px;border:1px solid var(--line);background:#000;margin-top:6px;"></video>
+      <div style="display:none;margin-top:8px;" id="webcamZoomRow">
+        <label style="margin-top:0;">Zoom</label>
+        <input type="range" id="webcamZoomSlider" min="1" max="1" step="0.1" value="1">
+      </div>
       <div style="margin-top:8px;">
         <button type="button" class="btn" id="captureBtn" style="margin-top:0;">📸 Capture</button>
         <button type="button" class="btn secondary" id="cancelWebcamBtn" style="margin-top:0;">Cancel</button>
@@ -1148,9 +1152,34 @@ function webcamSupported(){ return !!(navigator.mediaDevices && navigator.mediaD
 
 async function startWebcam(deviceId){
   if(webcamStream){ webcamStream.getTracks().forEach(t=>t.stop()); }
-  const constraints = deviceId ? {video:{deviceId:{exact:deviceId}}, audio:false} : {video:true, audio:false};
+  // No deviceId = default open: ask for the rear camera directly (facingMode) instead of
+  // forcing a device picker. "ideal" degrades gracefully on devices with no rear camera (desktops).
+  const constraints = deviceId
+    ? {video:{deviceId:{exact:deviceId}}, audio:false}
+    : {video:{facingMode:{ideal:'environment'}}, audio:false};
   webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
   document.getElementById('webcamVideo').srcObject = webcamStream;
+  setupZoomControl();
+}
+
+function setupZoomControl(){
+  const zoomRow = document.getElementById('webcamZoomRow');
+  const slider = document.getElementById('webcamZoomSlider');
+  const track = webcamStream && webcamStream.getVideoTracks()[0];
+  const caps = track && track.getCapabilities ? track.getCapabilities() : null;
+  if(!caps || !caps.zoom){
+    zoomRow.style.display = 'none';
+    return;
+  }
+  slider.min = caps.zoom.min;
+  slider.max = caps.zoom.max;
+  slider.step = caps.zoom.step || 0.1;
+  const settings = track.getSettings ? track.getSettings() : {};
+  slider.value = settings.zoom || caps.zoom.min;
+  zoomRow.style.display = 'block';
+  slider.oninput = () => {
+    track.applyConstraints({advanced:[{zoom: Number(slider.value)}]}).catch(()=>{});
+  };
 }
 
 async function populateCameraList(){

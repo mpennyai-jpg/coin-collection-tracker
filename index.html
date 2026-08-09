@@ -171,7 +171,6 @@
     </div>
     <div id="webcamPanel" style="display:none;margin-top:10px;">
       <div class="small" id="webcamTargetLabel" style="margin-bottom:4px;"></div>
-      <div style="display:none;" id="webcamDeviceRow"><label style="margin-top:0;">Camera</label><select id="webcamDeviceSelect"></select></div>
       <video id="webcamVideo" autoplay playsinline muted style="width:100%;max-width:360px;border-radius:6px;border:1px solid var(--line);background:#000;margin-top:6px;"></video>
       <div style="display:none;margin-top:8px;" id="webcamZoomRow">
         <label style="margin-top:0;">Zoom</label>
@@ -1150,14 +1149,11 @@ let webcamStream = null;
 let webcamTarget = 'front';
 function webcamSupported(){ return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
 
-async function startWebcam(deviceId){
+async function startWebcam(){
   if(webcamStream){ webcamStream.getTracks().forEach(t=>t.stop()); }
-  // No deviceId = default open: ask for the rear camera directly (facingMode) instead of
-  // forcing a device picker. "ideal" degrades gracefully on devices with no rear camera (desktops).
-  const constraints = deviceId
-    ? {video:{deviceId:{exact:deviceId}}, audio:false}
-    : {video:{facingMode:{ideal:'environment'}}, audio:false};
-  webcamStream = await navigator.mediaDevices.getUserMedia(constraints);
+  // Single fixed camera, no picker: always the rear-facing camera. "ideal" degrades
+  // gracefully on devices with no rear camera (desktops just get their one webcam).
+  webcamStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
   document.getElementById('webcamVideo').srcObject = webcamStream;
   setupZoomControl();
 }
@@ -1182,23 +1178,6 @@ function setupZoomControl(){
   };
 }
 
-async function populateCameraList(){
-  try{
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const cams = devices.filter(d=>d.kind==='videoinput');
-    const select = document.getElementById('webcamDeviceSelect');
-    const row = document.getElementById('webcamDeviceRow');
-    select.innerHTML = '';
-    if(cams.length <= 1){ row.style.display='none'; return; }
-    row.style.display='block';
-    cams.forEach((c,i)=>{
-      const o = document.createElement('option');
-      o.value = c.deviceId; o.textContent = c.label || ('Camera '+(i+1));
-      select.appendChild(o);
-    });
-  }catch(err){ /* enumerateDevices can be unreliable pre-permission on some browsers; ignore */ }
-}
-
 function stopWebcam(){
   if(webcamStream){ webcamStream.getTracks().forEach(t=>t.stop()); webcamStream = null; }
   document.getElementById('webcamPanel').style.display = 'none';
@@ -1213,15 +1192,10 @@ document.querySelectorAll('.webcamOpenBtn').forEach(btn=>{
     try{
       await startWebcam();
       document.getElementById('webcamPanel').style.display = 'block';
-      populateCameraList();
     }catch(err){
       alert('Could not access the camera: ' + err.message + '\n\nMake sure a webcam is connected and you allow camera access when the browser prompts.');
     }
   });
-});
-
-document.getElementById('webcamDeviceSelect').addEventListener('change', (e)=>{
-  startWebcam(e.target.value).catch(err=>alert('Could not switch camera: '+err.message));
 });
 
 document.getElementById('cancelWebcamBtn').addEventListener('click', stopWebcam);

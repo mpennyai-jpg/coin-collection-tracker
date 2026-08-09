@@ -301,7 +301,7 @@
 <div class="tab" id="tab-export">
   <div class="panel">
     <h2>AI Coin Identification</h2>
-    <div class="refnote">This sends the photo(s) of a coin directly from your browser to Anthropic's Claude API to get a starting guess at series, year, mint mark, and condition. It needs your own Anthropic API key (separate from any claude.ai subscription — create one at console.anthropic.com under Settings → API Keys) and bills per photo, typically a fraction of a cent with Haiku up to a few cents with Opus. <strong>Your key is stored only in this browser's local storage</strong> — it is never included in Export All Data, the OneDrive CSV/PDF, or the app file itself. <strong>Always verify the AI's guess</strong> before trusting it, especially on anything that looks valuable — it can misread worn dates and mint marks, and it cannot authenticate rare error coins.</div>
+    <div class="refnote">This sends the photo(s) of a coin directly from your browser to Anthropic's Claude API to get a starting guess at series, year, mint mark, and condition. It needs your own Anthropic API key (separate from any claude.ai subscription — create one at console.anthropic.com under Settings → API Keys) and bills per photo, typically a fraction of a cent with Haiku up to a few cents with Opus. When a coin doesn't match one of this app's known series (foreign coins, tokens, commemoratives, anything unusual), it automatically runs a second, deeper lookup using web search to try to actually identify it instead of just calling it "Other" — that's an extra API call, only when needed. <strong>Your key is stored only in this browser's local storage</strong> — it is never included in Export All Data, the OneDrive CSV/PDF, or the app file itself. <strong>Always verify the AI's guess</strong> before trusting it, especially on anything that looks valuable — it can misread worn dates and mint marks, and it cannot authenticate rare error coins.</div>
     <label>Anthropic API key</label>
     <input type="password" id="aiApiKeyInput" placeholder="sk-ant-...">
     <label>Model</label>
@@ -1297,32 +1297,31 @@ function denominationFromSeriesName(seriesName){
   return null;
 }
 
+// Matches an AI-guessed series name against this app's known SERIES dropdown.
+// Returns the exact dropdown text on a match, or null if it's not one of ours
+// (foreign coin, token, commemorative, etc. — a case for deepIdentifyWithSearch).
+function matchKnownSeries(seriesGuess){
+  if(!seriesGuess) return null;
+  const opts = Array.from(fSeries.options).filter(o => o.textContent !== 'Other / Not sure');
+  const exact = opts.find(o => o.textContent.toLowerCase() === seriesGuess.toLowerCase());
+  if(exact) return exact.textContent;
+  const base = seriesGuess.split(' (')[0].toLowerCase();
+  const partial = opts.find(o => o.textContent.toLowerCase().includes(base));
+  return partial ? partial.textContent : null;
+}
+
 function applyAiIdentification(result){
   const series = result.series || '';
   const year = result.year || '';
   const mm = result.mintmark || '';
   const condition = result.condition || '';
   const confidence = result.confidence || '';
-  let notes = result.notes || '';
+  const notes = result.notes || '';
 
-  let matchedSeriesName = null;
   if(series){
-    const opts = Array.from(fSeries.options);
-    const exact = opts.find(o => o.textContent.toLowerCase() === series.toLowerCase());
-    const base = series.split(' (')[0].toLowerCase();
-    const partial = opts.find(o => o.textContent.toLowerCase().includes(base));
-    const match = exact || partial;
-    if(match){
-      fSeries.value = match.textContent;
-      matchedSeriesName = match.textContent;
-    } else {
-      // AI named a series not in our dropdown — don't silently leave the old
-      // selection in place. Fall back to "Other" and keep the AI's guess as text.
-      fSeries.value = 'Other / Not sure';
-      matchedSeriesName = series;
-      notes = `AI identified this as "${series}", which isn't in this app's series list yet — logged as Other. ` + notes;
-    }
-    const denom = denominationFromSeriesName(matchedSeriesName);
+    const matched = matchKnownSeries(series);
+    fSeries.value = matched || 'Other / Not sure';
+    const denom = denominationFromSeriesName(matched || series);
     if(denom) document.getElementById('f_denom').value = denom;
   }
   if(/^\d{4}$/.test(year)){ document.getElementById('f_year').value = year; setYearUnknown(false); }
@@ -1394,6 +1393,40 @@ async function callAiIdentify(frontDataUrl, backDataUrl, retryOn429){
   catch(e){ throw new Error('Response was not valid structured data. Raw response: ' + textBlock.text.slice(0,300)); }
 }
 
+// Second-pass identification for coins that don't match this app's known series list —
+// foreign coins, tokens, commemoratives, anything unusual. Lets Claude use web search
+// instead of just giving up with "Other." Returns a free-text finding, or null.
+async function deepIdentifyWithSearch(frontDataUrl, backDataUrl, firstPassGuess){
+  const content = [];
+  if(frontDataUrl) content.push({type:'image', source:{type:'base64', media_type:'image/jpeg', data: frontDataUrl.split(',')[1]}});
+  if(backDataUrl) content.push({type:'image', source:{type:'base64', media_type:'image/jpeg', data: backDataUrl.split(',')[1]}});
+  content.push({type:'text', text: `A first-pass look at this coin guessed "${firstPassGuess || 'unknown'}", which isn't one of the common US coin series this app tracks — it may be a foreign coin, an old token, a commemorative, an error/variety, or something else unusual. Use web search if it would help pin this down precisely. In 2-4 sentences, report what the coin actually is (country/type/series), its approximate date or era, and anything you can find about its rarity or value. Be plain about your confidence, and say so clearly if you still can't identify it.`});
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': aiSettings.aiApiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: aiSettings.aiModel || 'claude-opus-5',
+      max_tokens: 1024,
+      messages: [{role:'user', content}],
+      tools: [{type:'web_search_20250305', name:'web_search'}]
+    })
+  });
+  if(!resp.ok){
+    let msg = 'HTTP ' + resp.status;
+    try{ const err = await resp.json(); if(err?.error?.message) msg = err.error.message; }catch(e){}
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  const text = (data.content||[]).filter(b => b.type === 'text').map(b => b.text).join(' ').trim();
+  return text || null;
+}
+
 async function identifyCoinWithAI(){
   if(!aiSettings.aiApiKey){
     alert('Add your Anthropic API key first — go to Export/Backup > AI Coin Identification.');
@@ -1409,6 +1442,15 @@ async function identifyCoinWithAI(){
   btn.disabled = true; btn.textContent = '🤖 Identifying...';
   try{
     const result = await callAiIdentify(pendingPhotoFront, pendingPhotoBack, true);
+    if(!matchKnownSeries(result.series)){
+      btn.textContent = '🤖 Not a common series — searching further...';
+      try{
+        const deep = await deepIdentifyWithSearch(pendingPhotoFront, pendingPhotoBack, result.series);
+        if(deep) result.notes = `Deeper search: ${deep}` + (result.notes ? ` (Initial read: ${result.notes})` : '');
+      }catch(searchErr){
+        result.notes = (result.notes||'') + ` (Follow-up web search failed: ${searchErr.message})`;
+      }
+    }
     applyAiIdentification(result);
   }catch(err){
     const corsHint = (err instanceof TypeError) ? '\n\nThis often means the browser blocked the request (CORS) or there\'s no internet connection. This feature needs Chrome or Edge with an internet connection.' : '';
@@ -1503,6 +1545,15 @@ document.getElementById('bulkStartBtn').addEventListener('click', async ()=>{
     progressBar.style.width = Math.round((i/bulkPairs.length)*100) + '%';
     try{
       const result = await callAiIdentify(pair.front.dataUrl, pair.back ? pair.back.dataUrl : null, true);
+      if(!matchKnownSeries(result.series)){
+        progressText.textContent = `Processing ${i+1} of ${bulkPairs.length}: not a common series, searching further...`;
+        try{
+          const deep = await deepIdentifyWithSearch(pair.front.dataUrl, pair.back ? pair.back.dataUrl : null, result.series);
+          if(deep) result.notes = `Deeper search: ${deep}` + (result.notes ? ` (Initial read: ${result.notes})` : '');
+        }catch(searchErr){
+          result.notes = (result.notes||'') + ` (Follow-up web search failed: ${searchErr.message})`;
+        }
+      }
       const coin = buildCoinFromAiResult(result, pair.front.dataUrl, pair.back ? pair.back.dataUrl : null);
       coins.push(coin);
       succeeded++;
@@ -1532,12 +1583,9 @@ document.getElementById('bulkStartBtn').addEventListener('click', async ()=>{
 
 function buildCoinFromAiResult(result, photoFront, photoBack){
   const series = result.series || '';
-  const opts = Array.from(fSeries.options);
-  const exact = opts.find(o => o.textContent.toLowerCase() === series.toLowerCase());
-  const base = series.split(' (')[0].toLowerCase();
-  const partial = opts.find(o => o.textContent.toLowerCase().includes(base));
-  const matchedSeries = (exact || partial) ? (exact||partial).textContent : 'Other / Not sure';
-  const denom = denominationFromSeriesName(matchedSeries) || 'Cent';
+  const matched = matchKnownSeries(series);
+  const matchedSeries = matched || 'Other / Not sure';
+  const denom = denominationFromSeriesName(matched || series) || 'Cent';
 
   const year = /^\d{4}$/.test(result.year) ? Number(result.year) : null;
   const mm = (result.mintmark && !['unclear','none',''].includes(result.mintmark.toLowerCase())) ? result.mintmark : '';
@@ -1556,8 +1604,7 @@ function buildCoinFromAiResult(result, photoFront, photoBack){
     dateAdded: new Date().toISOString(),
     series: matchedSeries, denom, year, mm, qty: 1, cond,
     status: 'Not yet reviewed',
-    notes: `AI identification (confidence: ${result.confidence||'unknown'} — verify before trusting): ${result.notes||'(no notes returned)'}` +
-      (series && matchedSeries==='Other / Not sure' ? `\nAI identified this as "${series}", which isn't in this app's series list yet.` : ''),
+    notes: `AI identification (confidence: ${result.confidence||'unknown'} — verify before trusting): ${result.notes||'(no notes returned)'}`,
     photoFront, photoBack, physicalErrors: []
   };
   const est = estimateValue(coin);

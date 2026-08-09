@@ -107,7 +107,9 @@
       </div>
     </div>
     <div class="row">
-      <div><label>Year</label><input type="number" id="f_year" placeholder="e.g. 1931" min="1793" max="2026"></div>
+      <div><label>Year</label><input type="number" id="f_year" placeholder="e.g. 1931" min="1793" max="2026">
+      <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-weight:normal;font-size:.85em;"><input type="checkbox" id="f_yearUnknown" style="width:auto;"> Date not legible / unknown</label>
+      </div>
       <div><label>Mint Mark</label><input id="f_mm" placeholder="e.g. S, D, CC, O, or blank for Philadelphia"></div>
       <div><label>Quantity</label><input type="number" id="f_qty" value="1" min="1"></div>
     </div>
@@ -891,7 +893,7 @@ function buildCsv(){
   const headers = ['Date Added','Series','Denomination','Year','Mint Mark','Quantity','Condition','Status','Flagged','Est Value Low','Est Value High','Match / Flag Reason','Physical Error Indicators','Has Front Photo','Has Back Photo','Notes'];
   const rows = coins.map(c => [
     c.dateAdded ? new Date(c.dateAdded).toLocaleString() : '',
-    c.series, c.denom, c.year, c.mm, c.qty, c.cond, c.status,
+    c.series, c.denom, c.year || 'Unknown', c.mm, c.qty, c.cond, c.status,
     c.flagged ? 'Yes' : 'No',
     (c.estLow||0).toFixed(2), (c.estHigh||0).toFixed(2),
     c.matchLabel || '', (c.physicalErrors||[]).join('; '),
@@ -945,7 +947,7 @@ async function buildPdfBlob(){
   y += 10;
 
   function renderCoinBlock(c){
-    const title = `${c.series} — ${c.year}${c.mm?' '+c.mm:''}  (Qty ${c.qty})`;
+    const title = `${c.series} — ${c.year || 'Unknown year'}${c.mm?' '+c.mm:''}  (Qty ${c.qty})`;
     const titleLines = doc.splitTextToSize(title, MAXW);
     const detail = `Condition: ${c.cond}   Status: ${c.status}   Est. value: $${(c.estLow||0).toLocaleString()}-$${(c.estHigh||0).toLocaleString()}`;
     const extras = [];
@@ -1288,7 +1290,8 @@ function applyAiIdentification(result){
     const denom = denominationFromSeriesName(matchedSeriesName);
     if(denom) document.getElementById('f_denom').value = denom;
   }
-  if(/^\d{4}$/.test(year)) document.getElementById('f_year').value = year;
+  if(/^\d{4}$/.test(year)){ document.getElementById('f_year').value = year; setYearUnknown(false); }
+  else { setYearUnknown(true); }
   if(mm && !['unclear','none',''].includes(mm.toLowerCase())) document.getElementById('f_mm').value = mm;
 
   const condMap = {
@@ -1373,10 +1376,11 @@ document.getElementById('aiIdentifyBtn').addEventListener('click', identifyCoinW
 
 function updateMatchPreview(){
   const series = fSeries.value, year = document.getElementById('f_year').value, mm = document.getElementById('f_mm').value;
+  const yearUnknown = document.getElementById('f_yearUnknown').checked;
   const box = document.getElementById('matchBox');
   const physicalErrors = getCheckedErrors();
   let html = '';
-  if(series && year){
+  if(series && (year || yearUnknown)){
     const est = estimateValue({series, year, mm, denom: document.getElementById('f_denom').value, qty: Number(document.getElementById('f_qty').value)||1});
     if(est.flagged){
       html += `<div class="flagbox">⚑ <strong>Possible key date/variety match:</strong> ${est.label}<br>Estimated range: <span class="est">$${est.low.toLocaleString()} – $${est.high.toLocaleString()}</span>${est.verifyOnly?'<br><em>Verification required before trusting this value — see How To tab.</em>':''}</div>`;
@@ -1395,18 +1399,30 @@ function updateMatchPreview(){
 fSeries.addEventListener('change', updateMatchPreview);
 document.querySelectorAll('.f_err').forEach(cb=>cb.addEventListener('change', updateMatchPreview));
 
+function setYearUnknown(unknown){
+  const yearInput = document.getElementById('f_year');
+  document.getElementById('f_yearUnknown').checked = unknown;
+  yearInput.disabled = unknown;
+  if(unknown) yearInput.value = '';
+}
+document.getElementById('f_yearUnknown').addEventListener('change', (e)=>{
+  setYearUnknown(e.target.checked);
+  updateMatchPreview();
+});
+
 let editingCoinId = null;
 
 document.getElementById('saveBtn').addEventListener('click', ()=>{
   const series = fSeries.value;
   const year = document.getElementById('f_year').value;
-  if(!year){ alert('Enter a year.'); return; }
+  const yearUnknown = document.getElementById('f_yearUnknown').checked;
+  if(!year && !yearUnknown){ alert('Enter a year, or check "Date not legible / unknown".'); return; }
   const existing = editingCoinId ? coins.find(c=>c.id===editingCoinId) : null;
   const coin = {
     id: existing ? existing.id : (Date.now()+'-'+Math.random().toString(36).slice(2,7)),
     dateAdded: existing ? existing.dateAdded : new Date().toISOString(),
     series, denom: document.getElementById('f_denom').value,
-    year: Number(year), mm: document.getElementById('f_mm').value.trim(),
+    year: yearUnknown ? null : Number(year), mm: document.getElementById('f_mm').value.trim(),
     qty: Number(document.getElementById('f_qty').value)||1,
     cond: document.getElementById('f_cond').value,
     status: document.getElementById('f_status').value,
@@ -1441,7 +1457,8 @@ function loadCoinForEdit(coin){
   editingCoinId = coin.id;
   fSeries.value = coin.series;
   document.getElementById('f_denom').value = coin.denom;
-  document.getElementById('f_year').value = coin.year;
+  if(coin.year){ document.getElementById('f_year').value = coin.year; setYearUnknown(false); }
+  else { setYearUnknown(true); }
   document.getElementById('f_mm').value = coin.mm || '';
   document.getElementById('f_qty').value = coin.qty || 1;
   const condOpts = Array.from(document.getElementById('f_cond').options);
@@ -1456,7 +1473,7 @@ function loadCoinForEdit(coin){
   document.querySelectorAll('.f_err').forEach(cb=>{ cb.checked = (coin.physicalErrors||[]).includes(cb.value); });
   document.getElementById('saveBtn').textContent = 'Update Coin';
   const banner = document.getElementById('editingBanner');
-  banner.innerHTML = `✏️ <strong>Editing:</strong> ${coin.series} — ${coin.year}${coin.mm?' '+coin.mm:''}. Click "Update Coin" below to save changes, or "Clear Form" to cancel without saving.`;
+  banner.innerHTML = `✏️ <strong>Editing:</strong> ${coin.series} — ${coin.year || 'Unknown year'}${coin.mm?' '+coin.mm:''}. Click "Update Coin" below to save changes, or "Clear Form" to cancel without saving.`;
   banner.style.display = 'block';
   updateMatchPreview();
   showTab('add');
@@ -1466,6 +1483,7 @@ function clearForm(){
   editingCoinId = null;
   document.getElementById('saveBtn').textContent = 'Save Coin';
   document.getElementById('editingBanner').style.display = 'none';
+  setYearUnknown(false);
   document.getElementById('f_year').value='';
   document.getElementById('f_mm').value='';
   document.getElementById('f_qty').value=1;
@@ -1506,7 +1524,7 @@ function renderDashboard(){
   tbody.innerHTML = '';
   flagged.sort((a,b)=>(b.estHigh||0)-(a.estHigh||0)).forEach(c=>{
     const tr = document.createElement('tr'); tr.className='flagged';
-    tr.innerHTML = `<td>${c.series} — ${c.year}${c.mm? ' '+c.mm:''}</td>
+    tr.innerHTML = `<td>${c.series} — ${c.year || 'Unknown year'}${c.mm? ' '+c.mm:''}</td>
       <td>$${(c.estLow||0).toLocaleString()}–$${(c.estHigh||0).toLocaleString()}</td>
       <td>${c.status}</td><td>${c.matchLabel||''}</td>`;
     tbody.appendChild(tr);
@@ -1537,7 +1555,7 @@ function renderList(){
     if(flaggedOnly && !c.flagged) return false;
     if(statusF && c.status!==statusF) return false;
     if(q){
-      const hay = (c.series+' '+c.year+' '+c.mm+' '+c.notes).toLowerCase();
+      const hay = (c.series+' '+(c.year||'')+' '+c.mm+' '+c.notes).toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
@@ -1547,7 +1565,7 @@ function renderList(){
     tr.title = 'Click to view / edit this coin';
     tr.innerHTML = `<td>${c.photoFront?`<img class="thumb" src="${c.photoFront}" title="Front">`:''}${c.photoBack?`<img class="thumb" src="${c.photoBack}" title="Back" style="margin-left:4px;">`:''}</td>
       <td>${c.series}</td>
-      <td>${c.year}${c.mm?' '+c.mm:''}</td>
+      <td>${c.year || 'Unknown'}${c.mm?' '+c.mm:''}</td>
       <td>${c.qty}</td>
       <td>${c.cond}</td>
       <td>$${(c.estLow||0).toLocaleString()}–$${(c.estHigh||0).toLocaleString()}${c.flagged?' <span class="badge flag">flag</span>':''}</td>

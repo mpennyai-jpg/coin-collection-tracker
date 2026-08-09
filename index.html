@@ -45,7 +45,7 @@
   .stat{background:#efe8d8;border-radius:8px;padding:12px 18px;min-width:150px;flex:1;}
   .stat .num{font-size:1.6em;color:var(--accent-dark);font-weight:bold;}
   .stat .lbl{font-family:Arial,sans-serif;font-size:.78em;color:var(--muted);}
-  .thumb{max-width:70px;max-height:70px;border-radius:4px;border:1px solid var(--line);}
+  .thumb{max-width:70px;max-height:70px;border-radius:4px;border:1px solid var(--line);cursor:zoom-in;}
   .refnote{background:var(--warn-bg);border:1px solid #e0c96b;border-radius:6px;padding:10px 14px;font-family:Arial,sans-serif;font-size:.9em;margin:10px 0;}
   .flagbox{background:var(--flag-bg);border:1px solid var(--flag);border-radius:6px;padding:10px 14px;margin-top:12px;font-family:Arial,sans-serif;font-size:.92em;}
   .tab{display:none;}
@@ -313,6 +313,10 @@
 </div>
 
 </main>
+
+<div id="photoLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:1000;align-items:center;justify-content:center;cursor:zoom-out;padding:20px;">
+  <img id="photoLightboxImg" style="max-width:95vw;max-height:95vh;border-radius:6px;box-shadow:0 4px 24px rgba(0,0,0,.5);">
+</div>
 
 <script>
 /* jsPDF v2.5.1 (MIT license) — embedded for fully offline PDF generation, no CDN dependency */
@@ -1123,6 +1127,21 @@ function setPendingPhoto(side, dataUrl){
   if(dataUrl){ prev.src = dataUrl; prev.style.display='inline-block'; }
   else { prev.style.display='none'; prev.src=''; }
 }
+
+function openPhotoLightbox(src){
+  if(!src) return;
+  document.getElementById('photoLightboxImg').src = src;
+  document.getElementById('photoLightbox').style.display = 'flex';
+}
+function closePhotoLightbox(){
+  document.getElementById('photoLightbox').style.display = 'none';
+  document.getElementById('photoLightboxImg').src = '';
+}
+document.getElementById('photoLightbox').addEventListener('click', closePhotoLightbox);
+document.getElementById('f_photoPreviewFront').style.cursor = 'zoom-in';
+document.getElementById('f_photoPreviewBack').style.cursor = 'zoom-in';
+document.getElementById('f_photoPreviewFront').addEventListener('click', (e)=> openPhotoLightbox(e.target.src));
+document.getElementById('f_photoPreviewBack').addEventListener('click', (e)=> openPhotoLightbox(e.target.src));
 function wireFileInput(inputId, side){
   document.getElementById(inputId).addEventListener('change', function(e){
     const file = e.target.files[0];
@@ -1537,6 +1556,7 @@ function renderList(){
       <button class="btn danger" style="margin:4px 0 0;padding:4px 8px;font-size:.8em;" data-id="${c.id}">Delete</button></td>`;
     tr.addEventListener('click', (e)=>{
       if(e.target.closest('button')) return;
+      if(e.target.tagName === 'IMG' && e.target.classList.contains('thumb')){ openPhotoLightbox(e.target.src); return; }
       loadCoinForEdit(c);
     });
     tbody.appendChild(tr);
